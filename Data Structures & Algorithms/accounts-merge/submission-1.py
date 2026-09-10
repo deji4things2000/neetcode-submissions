@@ -1,0 +1,56 @@
+class Solution:
+    def accountsMerge(self, accounts: List[List[str]]) -> List[List[str]]:
+        n = len(accounts)
+        dsu = UnionFind(n)
+        ecc = {}
+
+        #Link account that share similar email.
+        for i in range(n):
+            for email in accounts[i][1:]:
+                if email in ecc:
+                    dsu.union(ecc[email], i)
+                else:
+                    ecc[email] = i
+        
+        #Merged/Group emails by root account
+        merged = {}
+        for i in range(n):
+            root = dsu.find(i)
+            if root not in merged:
+                merged[root] = []
+
+            for email in accounts[i][1:]:
+                if email not in merged[root]:
+                    merged[root].append(email)
+
+        #Format result
+        res = []
+        for root, emails in merged.items():
+            emails.sort()
+            name = accounts[root][0]
+            res.append([name] + emails)
+        return res
+                
+class UnionFind:
+    def __init__(self, n):
+        self.size = [0] * n
+        self.parent = list(range(n))
+
+    def find(self, x):
+        if self.parent[x] != x:
+            self.parent[x] = self.find(self.parent[x])
+        return self.parent[x]
+
+    def union(self, x, y):
+        rx = self.find(x)
+        ry = self.find(y)
+
+        if rx == ry:
+            return False
+
+        if self.size[rx] < self.size[ry]:
+            rx, ry = ry, rx
+
+        self.parent[rx] = ry
+        self.size[rx] += self.size[ry]
+        return True
